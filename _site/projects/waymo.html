@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Waymo Obstacle Detection | Carlos Henrique Aranguren</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Waymo Obstacle Detection" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Robotics, autonomy, and digital systems projects." />
+<meta property="og:description" content="Robotics, autonomy, and digital systems projects." />
+<link rel="canonical" href="http://localhost:4000/projects/waymo.html" />
+<meta property="og:url" content="http://localhost:4000/projects/waymo.html" />
+<meta property="og:site_name" content="Carlos Henrique Aranguren" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Waymo Obstacle Detection" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Robotics, autonomy, and digital systems projects.","headline":"Waymo Obstacle Detection","url":"http://localhost:4000/projects/waymo.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Carlos Henrique Aranguren" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Carlos Henrique Aranguren</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/projects/">Projects</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="project-header" style="margin-bottom: 30px;">
+  <h1>Obstacle Detection on the Waymo Open Dataset</h1>
+  <p class="subtitle" style="color: #666; font-size: 1.2rem;">
+    Comparing Mask R-CNN, DETR, Deformable DETR, and DeepLabv3+ for robust camera-only perception.
+  </p>
+
+  <div style="margin-top: 15px;">
+    <a href="https://github.com/carloshenriquearanguren/TrafficDetection" class="btn" style="background: #24292e; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin-right: 10px;">
+      View Code on GitHub
+    </a>
+    <a href="/assets/documents/CS231N (4).pdf" class="btn" style="background: #0366d6; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px;">
+      Download Project Report (PDF)
+    </a>
+  </div>
+</div>
+
+<div style="margin: 2rem 0;">
+  <img src="/assets/images/waymo/DECENT.jpg" alt="Overview collage of obstacle detection results on the Waymo Open Dataset" style="width: 100%; border-radius: 6px; border: 1px solid #e1e4e8;" />
+  <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+    High-level visualization of detection performance across models and conditions on the Waymo Open Dataset.
+  </p>
+</div>
+
+<h2 id="1-problem--approach">1. Problem &amp; Approach</h2>
+
+<p>This project tackles camera-only obstacle detection on the Waymo Open Dataset, focusing on vehicles, pedestrians, and cyclists from a front-facing camera. The goal is to understand how different perception paradigms trade off accuracy, robustness, and speed for autonomous driving scenarios.</p>
+
+<p>Four models are implemented and evaluated on the same data: Mask R-CNN (instance segmentation), DETR (transformer-based detection), Deformable DETR (multi-scale transformer detector), and DeepLabv3+ (semantic segmentation with pseudo-labels). Each model is trained on Waymo v1.4 with a consistent preprocessing pipeline and then stress-tested under adverse “weather” and adversarial conditions.</p>
+
+<hr />
+
+<h2 id="2-dataset--preprocessing">2. Dataset &amp; Preprocessing</h2>
+
+<p>The work uses the Waymo Open Dataset camera streams, extracting front-camera RGB frames and 2D bounding boxes for vehicles, pedestrians, and cyclists. Custom preprocessing scripts convert Waymo’s TFRecords and v2 Parquet camera segmentation format into a training-ready dataset of images, masks, and JSON manifests.</p>
+
+<p>For semantic segmentation, panoptic/semantic labels are remapped into a reduced class set aligned with DeepLabv3+ (road, sidewalk, vehicles, pedestrians, riders, static scene elements). Where dense labels are missing, pseudo-masks are generated by filling each bounding box region with its class ID and treating everything else as background, enabling pixel-wise training from box annotations.</p>
+
+<p>Data augmentation includes random flips, scale jittering, photometric changes, blur, and synthetic “weather” transforms (rain, fog, lighting shifts, motion blur) to improve generalization.</p>
+
+<hr />
+
+<h2 id="3-model-architectures">3. Model Architectures</h2>
+
+<p><strong>Mask R-CNN (Instance Segmentation)</strong><br />
+A two-stage detector with a ResNet-50 + FPN backbone produces region proposals, followed by box and mask heads that output class labels, bounding boxes, and 28×28 instance masks. The COCO-pretrained heads are adapted to four classes (vehicle, pedestrian, cyclist, background) and trained with a multi-task loss combining classification, box regression, and mask supervision.</p>
+
+<p><strong>DETR &amp; Deformable DETR (Transformer Detectors)</strong><br />
+DETR uses a ResNet-50 backbone and a transformer encoder–decoder with a fixed set of object queries that directly predict normalized boxes and class logits, trained with a Hungarian matching loss over predictions and ground truth. Deformable DETR extends this by adding multi-scale FPN features and sparse deformable attention, enabling much faster convergence and better small-object performance.</p>
+
+<p><strong>DeepLabv3+ (Semantic Segmentation)</strong><br />
+DeepLabv3+ employs a ResNet-50 encoder with atrous convolutions and an ASPP module, followed by a lightweight decoder that fuses low-level and high-level features for per-pixel classification into four obstacle/background classes. Training uses the pseudo-segmentation masks described above with standard cross-entropy loss.</p>
+
+<hr />
+
+<h2 id="4-robustness--evaluation-pipeline">4. Robustness &amp; Evaluation Pipeline</h2>
+
+<p>A dedicated robustness harness evaluates all three detection models (Mask R-CNN, DETR, Deformable DETR) under a suite of synthetic perturbations applied at test time. For each condition (clean, light/heavy rain, light/heavy fog, low/high lighting, motion blur, JPEG artifacts, and adversarial FGSM/PGD attacks), the script generates transformed images, runs inference, and computes detection accuracy via IoU-based matching between predicted and ground-truth boxes.</p>
+
+<p>The evaluation code normalizes all boxes into a shared ((x_{\min}, y_{\min}, x_{\max}, y_{\max}) \in [0,1]) format, decodes logits into scores and labels, and then uses IoU matrices to count correct detections above a configurable IoU and score threshold. A similar pipeline is used to compute mIoU for DeepLabv3+ under the same perturbations, allowing a direct comparison of robustness across detection and segmentation paradigms.</p>
+
+<hr />
+
+<h2 id="5-qualitative-results">5. Qualitative Results</h2>
+
+<p>To visualize behavior during training and under perturbations, the project logs per-epoch detection overlays where ground-truth boxes (green) and model predictions (blue) are rendered on heavily colorized Waymo frames. These images make it easy to see failure modes such as missed small pedestrians, spurious boxes on high-contrast edges, and degradation as weather severity increases.</p>
+
+<div style="margin: 2rem 0;">
+  <img src="/assets/images/waymo/epoch_34_batch_0.jpg" alt="Early training epoch, noisy detections" style="width: 100%; border-radius: 6px; border: 1px solid #e1e4e8;" />
+  <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+    Early-epoch predictions with many overlapping proposals and low-confidence detections before convergence.
+  </p>
+</div>
+
+<div style="margin: 2rem 0;">
+  <img src="/assets/images/waymo/epoch_97_batch_0.jpg" alt="Intermediate epoch, improved detections" style="width: 100%; border-radius: 6px; border: 1px solid #e1e4e8;" />
+  <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+    Mid-training epoch where detections begin to align with ground truth but still miss some small, distant objects.
+  </p>
+</div>
+
+<div style="margin: 2rem 0;">
+  <img src="/assets/images/waymo/epoch_188_batch_0.jpg" alt="Late epoch, mature detections under challenging lighting" style="width: 100%; border-radius: 6px; border: 1px solid #e1e4e8;" />
+  <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+    Late-epoch visualization showing a trained Deformable DETR model successfully localizing vehicles and pedestrians under harsh lighting.
+  </p>
+</div>
+
+<div style="margin: 2rem 0;">
+  <img src="/assets/images/waymo/epoch_147_batch_0.jpg" alt="Detection robustness under strong appearance changes" style="width: 100%; border-radius: 6px; border: 1px solid #e1e4e8;" />
+  <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+    Example frame with strong color shifts and contrast changes, used to test robustness of bounding-box predictions.
+  </p>
+</div>
+
+<hr />
+
+<h2 id="6-takeaways">6. Takeaways</h2>
+
+<p>This project shows that classic two-stage detectors like Mask R-CNN remain very strong for large obstacles, while modern transformer-based models such as Deformable DETR can match or approach that accuracy with faster convergence and better handling of small objects. Semantic segmentation with DeepLabv3+ trades exact instance boundaries for more stable pixel-level predictions under noise, making it an attractive building block for robust drivable-area and obstacle-region estimation.</p>
+
+<p>The robustness framework highlights that all models degrade under severe weather and adversarial attacks, but in different ways—detectors tend to lose small objects first, while segmentation gradually erodes boundaries and thin structures. Future directions include panoptic segmentation, LiDAR–camera fusion, stronger backbones, and real-time optimization (for example, TensorRT) to move closer to deployable on-vehicle perception.</p>
+
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Carlos Henrique Aranguren</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Carlos Henrique Aranguren</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Robotics, autonomy, and digital systems projects.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

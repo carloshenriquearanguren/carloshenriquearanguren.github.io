@@ -1,0 +1,17 @@
+- name: "ROS2 Autonomous Navigation"
+  description: "A full-stack robotics framework featuring Frontier Exploration, A* Path Planning, and Object Detection."
+  url: "/projects/autonomy-stack"
+  image: "/assets/images/ee108/path.png"
+  tags: [Python, ROS2, Robotics, Algorithms]
+
+- name: "FPGA Audio Synth & Visualizer"
+  description: "A complete hardware audio stack: Wavetable Synthesis, DSP Effects, and VGA Visualization on a Xilinx PYNQ-Z2."
+  url: "/projects/ee108"
+  image: "/assets/images/ee108/block-diagram.png"
+  tags: [SystemVerilog, FPGA, DSP, Xilinx]
+
+- name: "Waymo Obstacle Detection"
+  description: "Camera-only obstacle detection on the Waymo Open Dataset using Mask R-CNN, DETR, Deformable DETR, and DeepLabv3+."
+  url: "/projects/waymo"
+  image: "/assets/images/waymo/DECENT.jpg"
+  tags: [PyTorch, Computer Vision, Detection, Waymo]

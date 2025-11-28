@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>ROS2 Autonomy Stack | Carlos Henrique Aranguren</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="ROS2 Autonomy Stack" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Robotics, autonomy, and digital systems projects." />
+<meta property="og:description" content="Robotics, autonomy, and digital systems projects." />
+<link rel="canonical" href="http://localhost:4000/projects/autonomy-stack.html" />
+<meta property="og:url" content="http://localhost:4000/projects/autonomy-stack.html" />
+<meta property="og:site_name" content="Carlos Henrique Aranguren" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="ROS2 Autonomy Stack" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"Robotics, autonomy, and digital systems projects.","headline":"ROS2 Autonomy Stack","url":"http://localhost:4000/projects/autonomy-stack.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Carlos Henrique Aranguren" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Carlos Henrique Aranguren</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/projects/">Projects</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="project-header" style="margin-bottom: 30px;">
+  <h1>ROS2 Autonomy Stack</h1>
+  <p class="subtitle" style="color: #666; font-size: 1.2rem;">
+    Frontier-based exploration, global planning, and low-level control for a TurtleBot3 running ROS2 Humble.
+  </p>
+
+  <div style="margin-top: 15px;">
+    <a href="https://github.com/Tito004/section6" class="btn" style="background: #24292e; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin-right: 10px;">
+      View Code on GitHub
+    </a>
+  </div>
+</div>
+
+<h2 id="1-system-architecture">1. System Architecture</h2>
+
+<p>This project implements a ROS2 autonomy stack on a simulated TurtleBot3, integrating exploration, global planning, and low-level control into separate nodes that communicate over standard ROS2 topics. Frontier-based exploration drives the robot toward boundaries between known free space and unknown regions in an occupancy grid map, a common strategy for autonomous mapping tasks in ROS.</p>
+
+<p>The stack is built on top of <code class="language-plaintext highlighter-rouge">asl_tb3_lib</code> utilities for TurtleBot3, using stochastic occupancy grids, navigation primitives, and controller base classes from the AA174/274 autonomy labs. All logic is written in Python and targets ROS2 Humble, making it easy to extend, visualize in RViz, and deploy in Gazebo-based simulations.</p>
+
+<hr />
+
+<h2 id="2-demo-video">2. Demo Video</h2>
+
+<div class="video-holder" style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; margin-bottom: 20px;">
+  <!-- Replace VIDEO_ID with your YouTube ID, or swap this iframe for a local .mp4 <video> tag -->
+  <iframe src="https://www.youtube.com/embed/6-0zsNpcgs0?si=4d6usGVvHEePQJLa" title="Frontier Exploration Demo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen="">
+  </iframe>
+</div>
+
+<p style="color: #666;">
+The video shows the TurtleBot3 performing frontier-based exploration in simulation, building a map in real time while planning and executing paths to new frontiers.
+</p>
+
+<hr />
+
+<h2 id="3-frontier-exploration-node">3. Frontier Exploration Node</h2>
+
+<p>The <strong>Frontier Explorer</strong> node (<code>frontier_explorer.py</code>) subscribes to the global occupancy grid (<code>/map</code>) and robot state (<code>/state</code>), storing the map in a <code>StochOccupancyGrid2D</code> that tracks probabilities for free, occupied, and unknown cells. It also listens to a navigation success flag and a stop-sign detection topic, enabling it to coordinate exploration episodes and pause when the perception system detects a stop condition.</p>
+
+<p>To detect frontiers, the node constructs masks for unknown, free, and occupied space from the probabilistic grid and convolves each mask with a 13×13 uniform kernel using <code>scipy.signal.convolve2d</code>, efficiently aggregating local neighborhood information. A cell is marked as a valid frontier when the convolved unknown probability is at least 0.2, the free probability is at least 0.3, and the occupied probability is exactly zero, which captures boundaries between navigable space and unexplored regions while avoiding obstacles.</p>
+
+<p>Once the frontier set is computed, the node converts candidate cells back into world coordinates and selects the frontier with minimum Euclidean distance to the robot’s current pose as the next exploration goal. This goal is published on a navigation command topic that the global planner consumes, and the node tracks a simple internal state machine (waiting for map, exploring, waiting for navigation success) to decide when to send new goals.</p>
+
+<p>The explorer also integrates a stop-sign flag and a timer: when a stop event is received, it records the current time, stops sending new goals, and waits a fixed duration before resuming exploration, ensuring safe behavior around detected signs. A ROS2 parameter named <code>active</code> allows the entire frontier exploration behavior to be toggled on or off at runtime without changing code.</p>
+
+<hr />
+
+<h2 id="4-global-planner--trajectory-tracking">4. Global Planner &amp; Trajectory Tracking</h2>
+
+<p>The <strong>Navigator</strong> node (<code>navigator.py</code>) extends <code>BaseNavigator</code> from <code>asl_tb3_lib</code> and is responsible for taking high-level navigation goals and turning them into dynamically feasible trajectories for the robot. It subscribes to robot state and occupancy grid topics, and it receives target positions from the Frontier Explorer via a navigation command interface.</p>
+
+<p>Inside <code>navigator.py</code>, an <code>AStar</code> class implements a grid-based motion planner over the stochastic occupancy grid, discretizing the state space and using a heuristic (such as Euclidean distance) to guide the search from the robot’s current cell to the goal cell while avoiding occupied regions. The planner uses the underlying occupancy grid to reject states with occupancy probability above a threshold, ensuring the resulting path remains in free space.</p>
+
+<p>Once a sequence of waypoints is found, the navigator fits cubic B-splines to the (x) and (y) coordinates using <code>scipy.interpolate.splrep</code> and evaluates these splines via <code>splev</code> to obtain smoothed trajectories and their derivatives. The node then applies a tracking controller that uses these derivatives to compute desired accelerations and converts them into linear and angular velocity commands for the differential-drive robot.</p>
+
+<p>The tracking law combines feedforward terms from the spline (desired velocity and acceleration) with feedback terms on position and velocity errors, using gains such as (k_{px}), (k_{py}), (k_{dx}), and (k_{dy}) to stabilize the motion. The final control command is packaged into a <code>TurtleBotControl</code> message that sets the robot’s forward velocity and yaw rate, and the node includes logic to avoid re-planning excessively when the previous command’s velocity is essentially zero.</p>
+
+<hr />
+
+<h2 id="5-heading--perception-controllers">5. Heading &amp; Perception Controllers</h2>
+
+<p>The <strong>Heading Controller</strong> node (<code>heading_controller.py</code>) is built on <code>BaseHeadingController</code> and is responsible for aligning the robot’s orientation with a desired heading derived from the navigation stack. It declares a proportional gain parameter <code>kp</code> at startup and provides a property interface to read the current value, allowing real-time tuning via ROS2’s parameter server without restarting the node.</p>
+
+<p>Its control law computes the heading error as the wrapped difference between the target yaw and the current yaw using <code>wrap_angle</code>, and the controller outputs an angular velocity command
+(\omega = k_p \cdot \text{wrap_angle}(\theta_{\text{goal}} - \theta_{\text{current}})).
+By relying on angle wrapping, the controller avoids discontinuities at (\pm \pi) and ensures the robot always turns along the shortest rotational direction toward the goal orientation.</p>
+
+<p>The <strong>Perception Controller</strong> node (<code>perception_controller.py</code>) coordinates with the vision or perception pipeline through Boolean detection topics and a simple time-based state machine. It declares an <code>active</code> parameter to represent whether autonomous motion is allowed and keeps track of the last time this parameter changed, enabling it to enforce a cooldown window before re-activating motion after a stop event.</p>
+
+<p>In its <code>compute_control</code> method, the node initializes a <code>TurtleBotControl</code> message and, when active, sets a nominal angular velocity (for example, a slow rotation) to help with perception tasks like scanning for signs or landmarks. When the <code>active</code> flag is false, it sets the angular velocity to zero, checks whether the cooldown period has elapsed, and, if so, flips the <code>active</code> parameter back to true so that the autonomy stack can resume motion.</p>
+
+<hr />
+
+<h2 id="6-results--takeaways">6. Results &amp; Takeaways</h2>
+
+<p>In simulation, the combined stack is able to autonomously explore unknown environments by repeatedly selecting frontiers, planning collision-free paths, and tracking them while visualizing progress in RViz. The integration of a stop-sign flag and perception-aware pause logic shows how higher-level semantics from vision can be cleanly integrated into a navigation pipeline using ROS2 topics and parameters.</p>
+
+<p>This project demonstrates that decomposing autonomy into loosely coupled ROS2 nodes—frontier exploration, planning, heading control, and perception coordination—makes the system easier to debug, extend, and reuse across different tasks and environments. It also mirrors common patterns in the broader ROS ecosystem, where frontier-based exploration and occupancy-grid planners are standard building blocks for mapping and navigation on robots like TurtleBot3.</p>
+
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Carlos Henrique Aranguren</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Carlos Henrique Aranguren</li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Robotics, autonomy, and digital systems projects.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

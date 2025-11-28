@@ -1,0 +1,10 @@
+title: "Carlos Henrique Aranguren"
+description: "Robotics, autonomy, and digital systems projects."
+baseurl: "" 
+url: "https://carloshenriquearanguren.github.io"
+theme: minima
+
+# Show a Projects tab in the top nav
+header_pages:
+  - projects.md
+
